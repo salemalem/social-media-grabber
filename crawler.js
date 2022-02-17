@@ -25,6 +25,7 @@ const socialMediaRegex = {
 }
 
 let socialMediaLinks = new Set();
+let emails = new Set();
 
 async function crawl(url) {
   if (all_links.has(url)) {
@@ -44,6 +45,17 @@ async function crawl(url) {
           socialMediaLinks.add(links[i].attribs.href);
         }
       }
+      
+      let urlRegEx = RegExp(/https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)/);
+      if (!urlRegEx.test(links[i].attribs.href)) {
+        
+        let full_link = url + links[i].attribs.href;
+        console.log(full_link);
+      }
+      
+      // console.log(links[i].attribs.href);
+      // let urlObj = new URL('', links[i].attribs.href);
+      // console.log(url.includes(urlObj.hostname));
     }
 
   } catch(error) {
@@ -52,4 +64,4 @@ async function crawl(url) {
 }
 
 await crawl(base_url);
-console.log(socialMediaLinks);
+// console.log(socialMediaLinks);
