@@ -48,7 +48,10 @@ async function crawl(url) {
       
       let urlRegEx = RegExp(/https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)/);
       if (!urlRegEx.test(links[i].attribs.href)) {
-        
+        if (links[i].attribs.href.includes('mailto:')) {
+          emails.add(links[i].attribs.href.replace('mailto:', ''));
+          continue;
+        } 
         let full_link = url + links[i].attribs.href;
         console.log(full_link);
       }
