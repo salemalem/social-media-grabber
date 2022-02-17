@@ -10,8 +10,11 @@ const telPhoneNumbersDB = await db.getCollection("telPhoneNumbers");
 // TODO: Edit here
 // const initial_url = 'https://devdojo.com/';
 // const base_url = 'devdojo.com';
-const initial_url = 'https://nu.edu.kz/';
-const base_url = 'nu.edu.kz';
+// const initial_url = 'https://www.msu.ru/en/';
+// const base_url = 'msu.ru';
+const initial_url = 'https://www.jhu.edu/';
+const base_url = 'jhu.edu';
+
 
 let all_links = new Set();
 
@@ -60,12 +63,12 @@ async function crawl(url) {
       let media = false;
       for (let regex in socialMediaRegex) {
         if (socialMediaRegex[regex].test(links[i].attribs.href)) {
-          socialMediaLinks.add(links[i].attribs.href);
           if (!socialMediaLinks.has(links[i].attribs.href)) {
             await socialMediaLinksDB.insertOne({
               link: links[i].attribs.href,
             });
           }
+          socialMediaLinks.add(links[i].attribs.href);
           media = true;
           break;
         }
@@ -75,22 +78,23 @@ async function crawl(url) {
         let urlRegEx = RegExp(/^(https?|chrome):\/\/[^\s$.?#].[^\s]*$/gm);
         if (!urlRegEx.test(links[i].attribs.href)) {
           if (links[i].attribs.href.includes('mailto:')) {
-            const email = links[i].attribs.href.replace('mailto:', '')
-            emails.add(email);
+            const email = links[i].attribs.href.replace('mailto:', '');
             if (!emails.has(email)) {
               await emailsDB.insertOne({
                 email: email,
               });
             }
+            emails.add(email);
+            
             continue;
           } else if (links[i].attribs.href.includes('tel:')) {
-            const phoneNumber = links[i].attribs.href.replace('tel:', '')
-            phoneNumbers.add(phoneNumber);
+            const phoneNumber = links[i].attribs.href.replace('tel:', '');
             if (!phoneNumbers.has(phoneNumber)) {
               await telPhoneNumbersDB.insertOne({
                 phoneNumber: phoneNumber,
               });
             }
+            phoneNumbers.add(phoneNumber);
             continue;
           }
           let full_link = initial_url + (links[i].attribs.href).replace(/^\/+/, '');
