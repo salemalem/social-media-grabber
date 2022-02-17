@@ -10,8 +10,8 @@ const telPhoneNumbersDB = await db.getCollection("telPhoneNumbers");
 // TODO: Edit here
 // const initial_url = 'https://devdojo.com/';
 // const base_url = 'devdojo.com';
-const initial_url = 'https://www.msu.ru/en/';
-const base_url = 'msu.ru';
+const initial_url = 'https://nu.edu.kz/';
+const base_url = 'nu.edu.kz';
 
 let all_links = new Set();
 
