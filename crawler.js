@@ -8,8 +8,10 @@ const emailsDB = await db.getCollection("emails");
 const telPhoneNumbersDB = await db.getCollection("telPhoneNumbers");
 
 // TODO: Edit here
-const initial_url = 'https://devdojo.com/';
-const base_url = 'devdojo.com';
+// const initial_url = 'https://devdojo.com/';
+// const base_url = 'devdojo.com';
+const initial_url = 'https://www.msu.ru/en/';
+const base_url = 'msu.ru';
 
 let all_links = new Set();
 
@@ -59,9 +61,11 @@ async function crawl(url) {
       for (let regex in socialMediaRegex) {
         if (socialMediaRegex[regex].test(links[i].attribs.href)) {
           socialMediaLinks.add(links[i].attribs.href);
-          await socialMediaLinksDB.insertOne(
-            links[i].attribs.href
-          );
+          if (!socialMediaLinks.has(links[i].attribs.href)) {
+            await socialMediaLinksDB.insertOne({
+              link: links[i].attribs.href,
+            });
+          }
           media = true;
           break;
         }
@@ -71,10 +75,22 @@ async function crawl(url) {
         let urlRegEx = RegExp(/^(https?|chrome):\/\/[^\s$.?#].[^\s]*$/gm);
         if (!urlRegEx.test(links[i].attribs.href)) {
           if (links[i].attribs.href.includes('mailto:')) {
-            emails.add(links[i].attribs.href.replace('mailto:', ''));
+            const email = links[i].attribs.href.replace('mailto:', '')
+            emails.add(email);
+            if (!emails.has(email)) {
+              await emailsDB.insertOne({
+                email: email,
+              });
+            }
             continue;
           } else if (links[i].attribs.href.includes('tel:')) {
-            phoneNumbers.add(links[i].attribs.href.replace('tel:', ''));
+            const phoneNumber = links[i].attribs.href.replace('tel:', '')
+            phoneNumbers.add(phoneNumber);
+            if (!phoneNumbers.has(phoneNumber)) {
+              await telPhoneNumbersDB.insertOne({
+                phoneNumber: phoneNumber,
+              });
+            }
             continue;
           }
           let full_link = initial_url + (links[i].attribs.href).replace(/^\/+/, '');
