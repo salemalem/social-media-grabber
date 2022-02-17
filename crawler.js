@@ -3,7 +3,6 @@ import { cheerio } from "https://deno.land/x/cheerio@1.0.4/mod.ts";
 const base_url = 'https://80.lv/articles';
 
 let all_links = new Set();
-all_links.add(url);
 
 /*
 targets:
@@ -28,6 +27,10 @@ const socialMediaRegex = {
 let socialMediaLinks = new Set();
 
 async function crawl(url) {
+  if (all_links.has(url)) {
+    return;
+  }
+  all_links.add(url);
   try {
     const res = await fetch(url);
     const html = await res.text();
@@ -36,8 +39,6 @@ async function crawl(url) {
     const links = $('a');
     const links_length = links.length;
     for (let i = 0; i < links_length; i++) {
-      all_links.add(links[i].attribs.href);
-
       for (let regex in socialMediaRegex) {
         if (socialMediaRegex[regex].test(links[i].attribs.href)) {
           socialMediaLinks.add(links[i].attribs.href);
@@ -51,5 +52,4 @@ async function crawl(url) {
 }
 
 await crawl(base_url);
-
 console.log(socialMediaLinks);
