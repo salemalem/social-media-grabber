@@ -1,6 +1,6 @@
 import { cheerio } from "https://deno.land/x/cheerio@1.0.4/mod.ts";
 
-const url = 'https://80.lv/articles/no-code-game-creation-platform-for-building-the-metaverse/';
+const base_url = 'https://80.lv/articles';
 
 let all_links = new Set();
 all_links.add(url);
@@ -50,6 +50,6 @@ async function crawl(url) {
   }
 }
 
-await crawl(url);
+await crawl(base_url);
 
 console.log(socialMediaLinks);
