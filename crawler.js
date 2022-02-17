@@ -1,6 +1,6 @@
 import { cheerio } from "https://deno.land/x/cheerio@1.0.4/mod.ts";
 
-const base_url = 'https://80.lv/articles';
+const base_url = 'https://mitadmissions.org/blogs/';
 
 let all_links = new Set();
 
@@ -22,6 +22,7 @@ const socialMediaRegex = {
   instagram: new RegExp(/^(http(s)?:\/\/)?(www\.)?instagram\.com/gm),
   twitter: new RegExp(/^(http(s)?:\/\/)?(www\.)?twitter\.com/gm),
   discord: new RegExp(/^(http(s)?:\/\/)?(www\.)?discord\.gg/gm),
+  reddit: new RegExp(/^(http(s)?:\/\/)?(www\.)?reddit\.com/gm),
 }
 
 let socialMediaLinks = new Set();
@@ -32,6 +33,7 @@ async function crawl(url) {
     return;
   }
   all_links.add(url);
+  console.log(url);
   try {
     const res = await fetch(url);
     const html = await res.text();
@@ -46,19 +48,17 @@ async function crawl(url) {
         }
       }
       
-      let urlRegEx = RegExp(/https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)/);
+      let urlRegEx = RegExp(/^(https?|chrome):\/\/[^\s$.?#].[^\s]*$/gm);
       if (!urlRegEx.test(links[i].attribs.href)) {
         if (links[i].attribs.href.includes('mailto:')) {
           emails.add(links[i].attribs.href.replace('mailto:', ''));
           continue;
         } 
-        let full_link = url + links[i].attribs.href;
-        console.log(full_link);
+        let full_link = base_url + links[i].attribs.href;
+        crawl(full_link);
+      } else {
+        crawl(links[i].attribs.href);
       }
-      
-      // console.log(links[i].attribs.href);
-      // let urlObj = new URL('', links[i].attribs.href);
-      // console.log(url.includes(urlObj.hostname));
     }
 
   } catch(error) {
@@ -67,4 +67,3 @@ async function crawl(url) {
 }
 
 await crawl(base_url);
-// console.log(socialMediaLinks);
