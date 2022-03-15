@@ -12,8 +12,8 @@ const telPhoneNumbersDB = await db.getCollection("telPhoneNumbers");
 // const base_url = 'devdojo.com';
 // const initial_url = 'https://www.msu.ru/en/';
 // const base_url = 'msu.ru';
-const initial_url = 'https://www.jhu.edu/';
-const base_url = 'jhu.edu';
+const initial_url = 'https://www.aims.gov.au/';
+const base_url = 'aims.gov.au';
 
 
 let all_links = new Set();
@@ -51,7 +51,7 @@ async function crawl(url) {
     return;
   }
   all_links.add(url);
-  console.log(url);
+  // console.log(url);
   try {
     const res = await fetch(url);
     const html = await res.text();
@@ -64,9 +64,9 @@ async function crawl(url) {
       for (let regex in socialMediaRegex) {
         if (socialMediaRegex[regex].test(links[i].attribs.href)) {
           if (!socialMediaLinks.has(links[i].attribs.href)) {
-            await socialMediaLinksDB.insertOne({
-              link: links[i].attribs.href,
-            });
+            // await socialMediaLinksDB.insertOne({
+            //   link: links[i].attribs.href,
+            // });
           }
           socialMediaLinks.add(links[i].attribs.href);
           media = true;
@@ -77,9 +77,10 @@ async function crawl(url) {
       if (!media) {
         let urlRegEx = RegExp(/^(https?|chrome):\/\/[^\s$.?#].[^\s]*$/gm);
         if (!urlRegEx.test(links[i].attribs.href)) {
-          if (links[i].attribs.href.includes('mailto:')) {
+          if (links[i].attribs.href?.includes('mailto:')) {
             const email = links[i].attribs.href.replace('mailto:', '');
             if (!emails.has(email)) {
+              console.log(email);
               await emailsDB.insertOne({
                 email: email,
               });
@@ -87,7 +88,7 @@ async function crawl(url) {
             emails.add(email);
             
             continue;
-          } else if (links[i].attribs.href.includes('tel:')) {
+          } else if (links[i].attribs.href?.includes('tel:')) {
             const phoneNumber = links[i].attribs.href.replace('tel:', '');
             if (!phoneNumbers.has(phoneNumber)) {
               await telPhoneNumbersDB.insertOne({
@@ -97,7 +98,7 @@ async function crawl(url) {
             phoneNumbers.add(phoneNumber);
             continue;
           }
-          let full_link = initial_url + (links[i].attribs.href).replace(/^\/+/, '');
+          let full_link = initial_url + (links[i].attribs.href)?.replace(/^\/+/, '');
           crawl(full_link);
         } else {
           crawl(links[i].attribs.href);
