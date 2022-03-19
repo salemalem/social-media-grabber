@@ -43,12 +43,17 @@ async function crawl(url) {
     const links_length = links.length;
     for (let i = 0; i < links_length; i++) {
         let urlRegEx = RegExp(/^(https?|chrome):\/\/[^\s$.?#].[^\s]*$/gm);
+        // console.log(cheerio.text($('title').parent()));
+        // console.log($('#main-content').parent().text());
+        // console.log(cheerio.html($('a').get("7").parent.parent));
+        
         if (!urlRegEx.test(links[i].attribs.href)) {
           if (links[i].attribs.href?.includes('mailto:')) {
             const email = links[i].attribs.href.replace('mailto:', '');
             if (!emails.has(email)) {
               console.log(email);
-              console.log();
+              // let text_near_email = cheerio.text($('a').get(i.toString()).parent.parent);
+              let text_near_email = cheerio.text($('a').get(i).parent.parent.children);
               await emails_csv.writeRecord([email]);
             }
             emails.add(email);
