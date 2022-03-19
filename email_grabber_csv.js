@@ -1,39 +1,40 @@
 import { cheerio } from "https://deno.land/x/cheerio@1.0.4/mod.ts";
-import { CsvFile } from "https://deno.land/x/csv_file/mod.ts";
+import * as XLSX from 'https://deno.land/x/sheetjs/xlsx.mjs'
+import * as cptable from 'https://deno.land/x/sheetjs/dist/cpexcel.full.mjs';
+XLSX.set_cptable(cptable);
 
 // TODO: Edit here
-// const initial_url = 'https://devdojo.com/';
-// const base_url = 'devdojo.com';
 // const initial_url = 'https://www.msu.ru/en/';
 // const base_url = 'msu.ru';
-const initial_url = 'https://www.aims.gov.au/';
-const base_url = 'aims.gov.au';
+// const initial_url = 'https://www.ifw-kiel.de/';
+// const base_url = 'ifw-kiel.de';
+const initial_url = 'http://www.eie.gr/';
+const base_url = 'eie.gr';
 
 let all_links = new Set();
-let emails_csv = new CsvFile(await Deno.open('./projects/data/emails.csv', {read: true, write: true, create: true, truncate: true}));
 
-/*
-targets:
-  email
-  linkedin
-  youtube
-  facebook
-  instagram
-  twitter
-  discord
-*/
+let workbook = XLSX.utils.book_new();
+let contacts = [];
 
 let emails = new Set();
 
+// timer to stop functions
+let startTime = Date.now();
+let endTime = startTime + 150000;
+// endTime = startTime + 5500;
 async function crawl(url) {
+  console.log(url);
   if (!url.includes(base_url)) {
     return;
   }
   if (all_links.has(url)) {
     return;
   }
+  if (Date.now() >= endTime) {
+    // console.log("time is up");
+    return;
+  }
   all_links.add(url);
-  // console.log(url);
   try {
     const res = await fetch(url);
     const html = await res.text();
@@ -42,27 +43,27 @@ async function crawl(url) {
     const links = $('a');
     const links_length = links.length;
     for (let i = 0; i < links_length; i++) {
-        let urlRegEx = RegExp(/^(https?|chrome):\/\/[^\s$.?#].[^\s]*$/gm);
-        // console.log(cheerio.text($('title').parent()));
-        // console.log($('#main-content').parent().text());
-        // console.log(cheerio.html($('a').get("7").parent.parent));
-        
-        if (!urlRegEx.test(links[i].attribs.href)) {
-          if (links[i].attribs.href?.includes('mailto:')) {
-            const email = links[i].attribs.href.replace('mailto:', '');
-            if (!emails.has(email)) {
-              console.log(email);
-              // let text_near_email = cheerio.text($('a').get(i.toString()).parent.parent);
-              let text_near_email = cheerio.text($('a').get(i).parent.parent.children);
-              await emails_csv.writeRecord([email]);
-            }
-            emails.add(email);
-            continue;
+        // console.log(links[i].attribs.href);
+        let mailToRegex = RegExp(/mailto:([^\?]*)/gm);
+        if (mailToRegex.test(links[i].attribs.href)) {
+          const email = links[i].attribs.href.replace('mailto:', '');
+          if (!emails.has(email)) {
+            console.log(email);
+            let text_near_email = cheerio.text($('a').get(i).parent.parent.children);
+            contacts.push({
+              "email": email,
+              "text_near": text_near_email,
+            });
           }
+          emails.add(email);
+          continue;
+        }
+        let urlRegEx = RegExp(/^(https?|chrome):\/\/[^\s$.?#].[^\s]*$/gm);
+        if (!urlRegEx.test(links[i].attribs.href)) {
           let full_link = initial_url + (links[i].attribs.href)?.replace(/^\/+/, '');
-          crawl(full_link);
+          await crawl(full_link);
         } else {
-          crawl(links[i].attribs.href);
+          await crawl(links[i].attribs.href);
         }
       }
 
@@ -71,5 +72,13 @@ async function crawl(url) {
   }
 }
 
-await crawl(initial_url);
-emails_csv.close();
+async function main() {
+  await crawl(initial_url)
+  console.log(contacts);
+  try { await Deno.remove('./projects/data/emails.xlsx'); } catch (error) {}
+  let ws = XLSX.utils.json_to_sheet(contacts);
+  XLSX.utils.book_append_sheet(workbook, ws, "Contacts");
+  XLSX.writeFile(workbook, './projects/data/emails.xlsx', {type: 'file'});
+}
+
+main();
